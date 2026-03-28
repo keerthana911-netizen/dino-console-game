@@ -30,6 +30,7 @@ void gotoxy(int x, int y) {
 
 // Variables
 bool gameOver;
+bool win = false;
 
 int score, highScore;
 int dinoY;
@@ -56,6 +57,7 @@ void saveHighScore() {
 // Setup
 void setup() {
     gameOver = false;
+    win = false;
     score = 0;
     dinoY = 0;
     obstacle1X = 60;
@@ -168,9 +170,14 @@ void draw() {
 void input() {
     if (_kbhit()) {
         char ch = _getch();
-        if (ch == ' ' && dinoY == 0) {
+
+        if (ch == ' ' && dinoY == 0 && !gameOver) {
             jump = 6;
-            PlaySound(TEXT("SystemAsterisk"), NULL, SND_ALIAS | SND_ASYNC); // 🔊 jump
+            PlaySound(TEXT("sounds/jump.wav"), NULL, SND_FILENAME | SND_ASYNC);
+        }
+
+        if ((ch == 'r' || ch == 'R') && gameOver) {
+            setup();
         }
     }
 }
@@ -180,6 +187,8 @@ void logic() {
     frameCount++;
 
     if (!gameOver) {
+
+        // Jump physics
         if (jump > 0) {
             dinoY += 2;
             jump--;
@@ -188,6 +197,7 @@ void logic() {
             if (dinoY < 0) dinoY = 0;
         }
 
+        // Move obstacles
         obstacle1X -= 2;
         obstacle2X -= 2;
 
@@ -201,17 +211,28 @@ void logic() {
             score++;
         }
 
-        if (score % 3 == 0 && speed > 20)
-            speed -= 2;
+        // Difficulty system
+        if (score <= 15) speed = 70;
+        else if (score <= 40) speed = 45;
+        else speed = 25;
 
         if (score > highScore)
             highScore = score;
 
+        // Collision
         if ((obstacle1X >= 8 && obstacle1X <= 15 && dinoY < 3) ||
             (obstacle2X >= 8 && obstacle2X <= 15 && dinoY < 3)) {
+
             gameOver = true;
             flashScreen();
-            PlaySound(TEXT("SystemHand"), NULL, SND_ALIAS | SND_ASYNC); // 🔊 game over
+            PlaySound(TEXT("sounds/gameover.wav"), NULL, SND_FILENAME | SND_ASYNC);
+        }
+
+        // WIN CONDITION
+        if (score >= 100) {
+            win = true;
+            gameOver = true;
+            PlaySound(TEXT("sounds/win.wav"), NULL, SND_FILENAME | SND_ASYNC);
         }
     }
 }
@@ -236,26 +257,38 @@ int main() {
     hideCursor();
     loadHighScore();
     menu();
-    setup();
 
-    while (!gameOver) {
+    while (true) {
+        setup();
+
+        while (!gameOver) {
+            draw();
+            input();
+            logic();
+            Sleep(speed);
+        }
+
         draw();
-        input();
-        logic();
-        Sleep(speed);
+        saveHighScore();
+
+        gotoxy(0, 15);
+
+        if (win)
+            cout << "\n YOU WIN!\n";
+        else
+            cout << "\n GAME OVER!\n";
+
+        cout << "Final Score: " << score << endl;
+        cout << "Press R to Restart..." << endl;
+
+        while (gameOver) {
+            input();
+            Sleep(50);
+        }
     }
-
-    draw();
-
-    saveHighScore();
-
-    gotoxy(0, 15);
-    cout << "\nGAME OVER!\nFinal Score: " << score << endl;
-
-    system("pause");
-    return 0;
 }
 
+// Windows entry fix
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     return main();
 }
