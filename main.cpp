@@ -2,12 +2,17 @@
 #include <iostream>
 #include <conio.h>
 #include <fstream>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
+
 using namespace std;
 
+// Color
 void setColor(int color) {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 }
 
+// Hide cursor
 void hideCursor() {
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_CURSOR_INFO info;
@@ -16,14 +21,14 @@ void hideCursor() {
     SetConsoleCursorInfo(h, &info);
 }
 
+// Cursor
 void gotoxy(int x, int y) {
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-    COORD pos;
-    pos.X = x;
-    pos.Y = y;
+    COORD pos = {(SHORT)x, (SHORT)y};
     SetConsoleCursorPosition(h, pos);
 }
 
+// Variables
 bool gameOver;
 
 int score, highScore;
@@ -48,6 +53,7 @@ void saveHighScore() {
     file.close();
 }
 
+// Setup
 void setup() {
     gameOver = false;
     score = 0;
@@ -58,7 +64,7 @@ void setup() {
     speed = 60;
 }
 
-// 💥 FLASH EFFECT
+// 💥 FLASH
 void flashScreen() {
     for (int i = 0; i < 2; i++) {
         setColor(15);
@@ -76,14 +82,13 @@ void draw() {
 
     bool isNight = ((score / 5) % 2 == 1);
 
-    // Clear screen
     setColor(7);
     for (int i = 0; i < 20; i++) {
         gotoxy(0, i);
         cout << string(100, ' ');
     }
 
-    // 🌙 NIGHT
+    // NIGHT
     if (isNight) {
         setColor(15);
         gotoxy(10, 2); cout << (rand() % 2 ? "*" : ".");
@@ -95,8 +100,7 @@ void draw() {
         gotoxy(70, 4); cout << "  ) |";
         gotoxy(70, 5); cout << " )_/";
     }
-
-    // ☀️ DAY
+    // DAY
     else {
         setColor(14);
         gotoxy(70, 2); cout << " \\|/ ";
@@ -107,23 +111,18 @@ void draw() {
         gotoxy(10, 2); cout << "   ____   ";
         gotoxy(10, 3); cout << " _(    )_ ";
         gotoxy(10, 4); cout << "(________)";
-
-        gotoxy(35, 3); cout << "   ____   ";
-        gotoxy(35, 4); cout << " _(    )_ ";
-        gotoxy(35, 5); cout << "(________)";
     }
 
     int dinoX = 10;
     int groundY = 12;
 
-    // Ground
     setColor(8);
     gotoxy(0, groundY);
     for (int i = 0; i < 100; i++) cout << "_";
 
     int frame = frameCount % 4;
 
-    // 🦖 DINO (alive vs dead)
+    // Dino
     if (gameOver) setColor(8);
     else setColor(15);
 
@@ -147,7 +146,7 @@ void draw() {
         else cout << "  | |";
     }
 
-    // 🌵 CACTUS
+    // Cactus
     setColor(10);
     gotoxy(obstacle1X, groundY - 2); cout << " | ";
     gotoxy(obstacle1X, groundY - 1); cout << "| |";
@@ -160,7 +159,7 @@ void draw() {
     // Score
     setColor(15);
     gotoxy(0, groundY + 2);
-    cout << "                                                                                ";
+    cout << string(100, ' ');
     gotoxy(2, groundY + 2);
     cout << "Score: " << score << "   High Score: " << highScore;
 }
@@ -169,8 +168,10 @@ void draw() {
 void input() {
     if (_kbhit()) {
         char ch = _getch();
-        if (ch == ' ' && dinoY == 0)
+        if (ch == ' ' && dinoY == 0) {
             jump = 6;
+            PlaySound(TEXT("SystemAsterisk"), NULL, SND_ALIAS | SND_ASYNC); // 🔊 jump
+        }
     }
 }
 
@@ -206,11 +207,11 @@ void logic() {
         if (score > highScore)
             highScore = score;
 
-        // 💥 COLLISION
         if ((obstacle1X >= 8 && obstacle1X <= 15 && dinoY < 3) ||
             (obstacle2X >= 8 && obstacle2X <= 15 && dinoY < 3)) {
             gameOver = true;
             flashScreen();
+            PlaySound(TEXT("SystemHand"), NULL, SND_ALIAS | SND_ASYNC); // 🔊 game over
         }
     }
 }
@@ -244,7 +245,7 @@ int main() {
         Sleep(speed);
     }
 
-    draw(); // show dead dino
+    draw();
 
     saveHighScore();
 
