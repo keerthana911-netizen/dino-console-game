@@ -274,9 +274,9 @@ int main() {
         gotoxy(0, 15);
 
         if (win)
-            cout << "\n YOU WIN!\n";
+            cout << "\n🎉 YOU WIN!\n";
         else
-            cout << "\n GAME OVER!\n";
+            cout << "\n💀 GAME OVER!\n";
 
         cout << "Final Score: " << score << endl;
         cout << "Press R to Restart..." << endl;
