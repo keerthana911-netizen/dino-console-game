@@ -2,6 +2,7 @@
 
 A Chrome Dino-style game built in C++ using Windows console.
 
+#Click the link to watch the *Demo video game* - https://github.com/user-attachments/assets/b7d1ab38-5375-4314-a80a-12c485ee4e3e
 ## 🎮 Features
 - Jump mechanics
 - Moving obstacles 🌵
